@@ -12,6 +12,8 @@ Contents:
    :maxdepth: 2
 
    lession_1 
+   lession_2 
+   lession_3 
 
 Indices and tables
 ==================
