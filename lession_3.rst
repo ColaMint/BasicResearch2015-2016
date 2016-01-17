@@ -41,7 +41,7 @@ Master-Master(-Slaves)
 ~~~~~~~~~~~~
 
 .. code-block:: sql
-   
+  
    master1: 192.168.199.113:3306
        CREATE DATABASE `kingshard`;
        CREATE TABLE `kingshard`.`test_shard_hash_0000` ( `id` INT NOT NULL , `name` VARCHAR(10) NOT NULL , PRIMARY KEY (`id`)) ENGINE = InnoDB;
@@ -225,10 +225,7 @@ kindshard的特点
 14. 支持到后端DB的最大连接数限制。
 15. 支持SQL日志及慢日志输出。
 
-pt-online-schema-change
-------------------------
-
-`pt-online-schema-change <https://www.percona.com/doc/percona-toolkit/2.2/pt-online-schema-change.htmlhttps://www.percona.com/doc/percona-toolkit/2.2/pt-online-schema-change.html>`_ 是 Percona Toolkit 中的一个工具，它能在不阻塞读、写操作的情况下修改表结构。
+pt-online-schema-change ------------------------ `pt-online-schema-change <https://www.percona.com/doc/percona-toolkit/2.2/pt-online-schema-change.htmlhttps://www.percona.com/doc/percona-toolkit/2.2/pt-online-schema-change.html>`_ 是 Percona Toolkit 中的一个工具，它能在不阻塞读、写操作的情况下修改表结构。
 
 
 创建表
@@ -318,7 +315,16 @@ pt-online-schema-change的工作原理
     #. 若被修改结构的表是其他表的外键所引用的表，需要使用--alter-foreign-keys-method来自动修改其他表的外键引用新表
     #. 目前只有使用InnoD引擎的表才能使用该工具修改表结构
 
+不同使用场景下的方案选型
+------------------------
 
++--------------+-------------+------+------+----------+--------------+----------------+-------------------+
+| 使用场景     | CPU         | 内存 | 硬盘 | 文件系统 | I/O 调度算法 | 存储引擎       | 分布式方案        |
++==============+=============+======+======+==========+==============+================+===================+
+| Web应用      | 多核高速CPU |      |      |          |              | InnoDB         | 一主多从/双主互备 |
++--------------+-------------+------+------+----------+--------------+----------------+-------------------+
+| 日志记录系统 | 多核高速CPU |      |      |          |              | MyISAM/Archive | 一主多从          |
++--------------+-------------+------+------+----------+--------------+----------------+-------------------+
 
 参考资料
 --------
