@@ -1,12 +1,12 @@
-李铭：ifstat
-=============
+李铭：ifstat + flask源码剖析
+=============================
 
 netstat
 --------
 netstat 是用来打印网络连接数、路由表、接口统计、非活跃连接和多播成员的工具
 
 options
----------
+~~~~~~~~
 
 +------------------------+--------------------------------------------------------------------------------------------+
 | 选项                   | 说明                                                                                       |
@@ -48,7 +48,7 @@ options
 +------------------------+--------------------------------------------------------------------------------------------+
 
 套接字信息
------------------
+~~~~~~~~~~~
 
 用法：netstat [address_family_options] [--tcp|-t] [--udp|-u] [--raw|-w] [--listening|-l] [--all|-a] [--numeric|-n] [--numeric-hosts] [--numeric-ports] [--numeric-users] [--symbolic|-N] [--extend|-e[--extend|-e]] [--timers|-o] [--program|-p] [--verbose|-v] [--continuous|-c]
 
@@ -80,7 +80,7 @@ options
     ...
 
 路由表信息
------------
+~~~~~~~~~~~~
 
 用法：netstat {--route|-r} [address_family_options] [--extend|-e[--extend|-e]] [--verbose|-v] [--numeric|-n] [--numeric-hosts] [--numeric-ports] [--numeric-users] [--continuous|-c]
 
@@ -96,7 +96,7 @@ options
     link-local      *               255.255.0.0     U         0 0          0 enp0s3
 
 网络接口信息
--------------
+~~~~~~~~~~~~~
 
 用法：netstat {--interfaces|-i} [--all|-a] [--extend|-e[--extend|-e]] [--verbose|-v] [--program|-p] [--numeric|-n] [--numeric-hosts] [--numeric-ports] [--numeric-users] [--continuous|-c]
 
@@ -111,7 +111,7 @@ options
   lo        65536 0     91899      0      0 0         91899      0      0      0 LRU
 
 多播成员信息
--------------
+~~~~~~~~~~~~~~
 
 用法：netstat {--groups|-g} [--numeric|-n] [--numeric-hosts] [--numeric-ports] [--numeric-users] [--continuous|-c]
 
@@ -134,12 +134,12 @@ options
     enp0s3          1      ff01::1
 
 无效连接信息
--------------
+~~~~~~~~~~~~~~
 
 用法：netstat {--masquerade|-M} [--extend|-e] [--numeric|-n] [--numeric-hosts] [--numeric-ports] [--numeric-users] [--continuous|-c]
 
 统计信息
----------
+~~~~~~~~~~
 
 用法：netstat {--statistics|-s} [--tcp|-t] [--udp|-u] [--raw|-w]
 
@@ -217,3 +217,83 @@ options
         InBcastOctets: 284
         OutBcastOctets: 284
         InNoECTPkts: 122673 
+
+
+flask源码剖析
+~~~~~~~~~~~~~~~
+
+项目组织结构
+--------------
+
++------------------+---------------------------------+
+| 文件/文件夹      | 描述                            |
++------------------+---------------------------------+
+| artwork/         | logo的svg文件以及logo的版权申明 |
++------------------+---------------------------------+
+| docs/            | 文档（采用Sphinx）              |
++------------------+---------------------------------+
+| examples/        | 几个示例项目的代码              |
++------------------+---------------------------------+
+| flask/           | flask项目源码                   |
++------------------+---------------------------------+
+| scripts/         | 一些辅助性的脚本                |
++------------------+---------------------------------+
+| tests/           | flask项目测试代码               |
++------------------+---------------------------------+
+| AUTHORS          | 项目作者列表                    |
++------------------+---------------------------------+
+| CHANGES          | changelog                       |
++------------------+---------------------------------+
+| CONTRIBUTING.rst | 介绍如何为flask项目作贡献       |
++------------------+---------------------------------+
+| LICENSE          | 版本申明                        |
++------------------+---------------------------------+
+| Makefile         | 用make封装常用命令              |
++------------------+---------------------------------+
+| MANIFEST.in      | 发布清单(Distutils相关)         |
++------------------+---------------------------------+
+| README           | README文件                      |
++------------------+---------------------------------+
+| setup.cfg        | 配置文件(Distutils相关)         |
++------------------+---------------------------------+
+| setup.py         | 项目发布、安装脚本              |
++------------------+---------------------------------+
+| tox.ini          | tox标准化测试的配置文件         |
++------------------+---------------------------------+
+
+一次请求的处理过程
+-------------------
+
+
+当我们发起一起请求时，处理过程将从flask.app.Flask.wsgi_app(self, environ, start_response)开始
+
+首先用environ构造出一个flask.ctx.RequestContext(请求上下文)实例，并将其压入flask.globals._request_ctx_stack(请求上下文栈)中
+
+但是在压入之前，如果flask.globals._app_ctx_stack（应用上下文栈）的栈顶为空或栈顶的应用上下文与当前请求上下文所属的应用不对应，那么会先压入当前应用请求上下文到栈中
+
+在请求处理之前将请求上下文和应用上下文压入栈中是为了能够在请求处理过程获得当前应用(flask.globals.current_app)、当前请求(flask.globals.request)和全局对象g(flask.globals.g)
+
+随后，代码进入flask.app.Flask.full_dispatch_request(self)，开始处理请求
+
+如果这个请求是第一个请求，那么带有flask.app.Flask.before_first_request装饰器的函数被依次调用
+
+然后，带有flask.app.before_request函数会被依次调用，如果其中某次函数调用返回了一个response，那么直接进入最后的reponse处理过程，否则将会调用与请求的URL匹配的处理函数，来得到一个response
+
+紧接着，带有flask.app.Flask.after_request装饰器的函数被调用
+
+此时得到的response并不是真正的flask.wrappers.Response实例，需要经过flask.app.Flask.make_response(self, rv)进行转化，并将结果输出给用户
+
+最后，当前请求上下文从栈中弹出，如果该请求上下文入栈前还往应用上下文栈压入一个应用上下文，那么这个应用上下文也会弹出
+
+在请求上下文弹出前，带有flask.app.Flask.after_request装饰器的函数被调用
+
+在应用上下文弹出前，带有flask.app.Flask.teardown_appcontext装饰器的函数被调用
+
+上下文栈
+----------
+
+
+参考资料
+----------
+
+.. [1] man page - netstat 
