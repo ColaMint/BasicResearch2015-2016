@@ -292,6 +292,39 @@ flask源码剖析
 上下文栈
 ----------
 
+为了达到这种效果：对同一个对象操作能自动代理到当前线程/携程所对应的实际对象。例如同样对flask.request对象进行操作，在每个web请求中都会把操作代理到当前请求所对应的flask.wrappers.Request的实例，flask借助了werkzeug.local.LocalProxy, werkzeug.local.LocalStack 和 werkzeug.local.Local
+
+Local 自身维护一个字典，Key是线程/携程ID，Value也是一个字典（真正存放数据的地方）。当我们要从Local中获取或设置一个Key的值时，它先根据线程/携程ID找到所属的数据字典，再对该字典进行操作。从而实现在不同线程/携程对Local进行数据操作实际操作的是不同的字典。
+
+LocalStack 是被falsk用来存放上下文对象的栈，其内部维护一个Local对象，所以对于每个线程/携程来说，对LocalStack的操作实际上操作的是不同的栈实体。
+
+LocalProxy的构造函数中需要传入一个函数，之后每当对LocalProxy对象进行操作时，它会先调用这个函数来获得所代理的对象，然后再把操作施加在被代理对象身上。flask 利用 falsk.globals._lookup_req_object函数来帮助flask.globals.request找到被代理的对象（即flask.globals._request_ctx_stack的栈顶元素）。
+
+其他栈的道理相同。
+
+既然利用Local+LocalProxy就能实现把对同一个代理对象的操作代理施加在被代理对象身上，为什么还要利用LocalStack呢？毕竟在实际web环境中，一个线程/携程本身只需要处理一个请求，那么栈的高度最大只能是1，这不是多此一举吗？
+
+实际上flask这么设计是为了方便对多个应用同时进行测试：
+
+.. code-block:: py
+
+   from flask import Flask, request
+   app1 = Flask("app1")
+   app2 = Flask("app2")
+
+   @app1.route("/index1")
+   def index1():
+       return "app1"
+
+   @app2.route("/index2")
+   def index2():
+       return "app2"
+
+   with app1.test_request_context():
+       print request.url
+       with app2.test_request_context():
+           print request.url
+
 
 参考资料
 ----------
