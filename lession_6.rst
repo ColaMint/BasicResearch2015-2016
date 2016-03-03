@@ -1,4 +1,4 @@
-李铭：ifstat + flask源码剖析
+李铭：netstat + flask源码剖析
 =============================
 
 netstat
@@ -220,10 +220,10 @@ options
 
 
 flask源码剖析
-~~~~~~~~~~~~~~~
+---------------
 
 项目组织结构
---------------
+~~~~~~~~~~~~~
 
 +------------------+---------------------------------+
 | 文件/文件夹      | 描述                            |
@@ -261,8 +261,9 @@ flask源码剖析
 | tox.ini          | tox标准化测试的配置文件         |
 +------------------+---------------------------------+
 
+
 一次请求的处理过程
--------------------
+~~~~~~~~~~~~~~~~~~~~
 
 
 当我们发起一起请求时，处理过程将从flask.app.Flask.wsgi_app(self, environ, start_response)开始
@@ -290,7 +291,7 @@ flask源码剖析
 在应用上下文弹出前，带有flask.app.Flask.teardown_appcontext装饰器的函数被调用
 
 上下文栈
-----------
+~~~~~~~~~
 
 为了达到这种效果：对同一个对象操作能自动代理到当前线程/携程所对应的实际对象。例如同样对flask.request对象进行操作，在每个web请求中都会把操作代理到当前请求所对应的flask.wrappers.Request的实例，flask借助了werkzeug.local.LocalProxy, werkzeug.local.LocalStack 和 werkzeug.local.Local
 
@@ -302,7 +303,7 @@ LocalProxy的构造函数中需要传入一个函数，之后每当对LocalProxy
 
 其他栈的道理相同。
 
-既然利用Local+LocalProxy就能实现把对同一个代理对象的操作代理施加在被代理对象身上，为什么还要利用LocalStack呢？毕竟在实际web环境中，一个线程/携程本身只需要处理一个请求，那么栈的高度最大只能是1，这不是多此一举吗？
+既然利用Local+LocalProxy就能实现把对同一个代理对象的操作代理施加在被代理对象身上，为什么还要利用LocalStack呢？毕竟在实际web环境中，一个线程/携程本身只需要处理一个请求，那么栈的高度最大只能是1，看似多此一举吗？
 
 实际上flask这么设计是为了方便对多个应用同时进行测试：
 
@@ -320,13 +321,26 @@ LocalProxy的构造函数中需要传入一个函数，之后每当对LocalProxy
    def index2():
        return "app2"
 
-   with app1.test_request_context():
-       print request.url
-       with app2.test_request_context():
-           print request.url
+   with app1.test_request_context(path='/index1'):      # 压入请求上下文1
+       print request.url                                # 访问请求上下文1
+       with app2.test_request_context(path='/index2'):  # 压入请求上下文2 
+           print request.url                            # 访问请求上下文2
+       print request.url                                # 弹出请求上下文2，访问请求上下文1
+                                                        # 弹出请求上下文1
+
+运行结果：
+
+.. code-block:: 
+
+    http://localhost/index1
+    http://localhost/index2
+    http://localhost/index1
+
+从结果可以看出，正是在一个线程中往同一个请求上下文栈压入和弹出不同的两个请求上下文，request才能代理到正确的请求对象
 
 
 参考资料
 ----------
 
-.. [1] man page - netstat 
+.. [1] man page - netstat
+.. [2] flask source - https://github.com/mitsuhiko/flask
