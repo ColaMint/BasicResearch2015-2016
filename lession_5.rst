@@ -171,7 +171,7 @@ iostat [参数] [间隔（秒）[次数]]
 使用示例：查看CPU使用情况
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. code-block:: 
+.. code-block:: text 
 
     ymserver@gw-11:~$ iostat -c
     Linux 3.13.0-36-generic (gw-11.ad.awsjp)    02/10/2016  _x86_64_    (8 CPU)
@@ -198,7 +198,7 @@ iostat [参数] [间隔（秒）[次数]]
 使用示例：查看设备使用情况
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. code-block:: 
+.. code-block:: text 
     
     ymserver@gw-11:~$ iostat -d -k
     Linux 3.13.0-36-generic (gw-11.ad.awsjp)    02/10/2016  _x86_64_    (8 CPU)

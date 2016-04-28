@@ -37,7 +37,7 @@ Nginx: sendfile + tcp_nodelay + tcp_nopush
 
 配置1:
 
-.. code-block::
+.. code-block:: text
 
     sendfile        off;    
     tcp_nopush      off;    
@@ -57,7 +57,7 @@ Nginx: sendfile + tcp_nodelay + tcp_nopush
 
 配置2:
 
-.. code-block::
+.. code-block:: text
 
     sendfile        on;    
     tcp_nopush      on;    

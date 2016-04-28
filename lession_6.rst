@@ -1,5 +1,5 @@
-李铭：netstat + flask源码剖析
-=============================
+李铭：netstat + flask源码剖析 + 《High Performance Networking in Chrome》翻译
+===============================================================================
 
 netstat
 --------
@@ -54,7 +54,7 @@ options
 
 举例：显示所有tcp套接字的信息
 
-.. code-block:: 
+.. code-block:: text 
     
     li@li: netstat -at
     激活Internet连接 (服务器和已建立连接的)
@@ -86,7 +86,7 @@ options
 
 举例：
 
-.. code-block:: 
+.. code-block:: text 
 
     li@li: netstat -r
     内核 IP 路由表
@@ -102,7 +102,7 @@ options
 
 举例：
 
-.. code-block:: 
+.. code-block:: text 
 
   li@li: netstat -i
   Kernel Interface table
@@ -117,7 +117,7 @@ options
 
 举例：
  
-.. code-block:: 
+.. code-block:: text 
 
     li@li：netstat -g
     IPv6/IPv4 Group Memberships
@@ -145,7 +145,7 @@ options
 
 举例：
 
-.. code-block:: 
+.. code-block:: text 
 
     li@li: netstat -s
     Ip:
@@ -330,7 +330,7 @@ LocalProxy的构造函数中需要传入一个函数，之后每当对LocalProxy
 
 运行结果：
 
-.. code-block:: 
+.. code-block:: text
 
     http://localhost/index1
     http://localhost/index2
@@ -338,9 +338,14 @@ LocalProxy的构造函数中需要传入一个函数，之后每当对LocalProxy
 
 从结果可以看出，正是在一个线程中往同一个请求上下文栈压入和弹出不同的两个请求上下文，request才能代理到正确的请求对象
 
+《High Performance Networking in Chrome》翻译
+----------------------------------------------
+
+`High Performance Networking in Chrome.pdf <_static/High_Performance_Networking_in_Chrome.pdf>`_
 
 参考资料
 ----------
 
 .. [1] man page - netstat
 .. [2] flask source - https://github.com/mitsuhiko/flask
+.. [3] 《High Performance Networking in Chrome》- http://aosabook.org/en/posa/high-performance-networking-in-chrome.html

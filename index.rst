@@ -16,6 +16,7 @@ Contents:
    lession_3 
    lession_4 
    lession_5 
+   lession_6 
 
 Indices and tables
 ==================
